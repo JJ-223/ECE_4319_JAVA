@@ -13,11 +13,11 @@ import java.util.ArrayList;
 public class Trivia extends JFrame{
     private String username;
     private JPanel cardPanel, welcomePanel, usernamePanel, gamePanel, resultPanel;
-    private JButton startButton, nextButton, usernameButton, playButton, playAgainButton;
+    private JButton startButton, nextButton, usernameButton, playAgainButton;
     private JButton japanButton, mexicoButton, australiaButton, taiwanButton, greeceButton, cambodiaButton;
     private JTextField inputField;
     private CardLayout cardLayout;
-    private JLabel questionLabel, resultLabel;
+    private JLabel questionLabel, resultLabel, InstructionLabel;
     private JButton[] optionButtons = new JButton[4];
     private int currentQuestionIdx, currentScore;
     private List<List<String>> questionPair;
@@ -63,16 +63,9 @@ public class Trivia extends JFrame{
             if(event.getSource() == startButton){
                 cardLayout.show(cardPanel, "U");
             }
-            /*else if (event.getSource() == playButton){
-                currentQuestionIdx = 0;
-                currentScore = 0;
-                importQuestions("Japan.txt");
-                loadNextQuestions();
-                cardLayout.show(cardPanel, "G");
-            }*/
             else if(event.getSource() == nextButton){
                 //createResultPanel();
-                resultLabel.setText("Congrats " + username + " on earning " + currentScore + " pts!");
+                resultLabel.setText("on earning " + currentScore + " pts, " + username + "!");
                 cardLayout.show(cardPanel, "R");
             }
             else if (event.getSource() == usernameButton){
@@ -88,42 +81,42 @@ public class Trivia extends JFrame{
             else if (event.getSource() == japanButton){
                 currentQuestionIdx = 0;
                 currentScore = 0;
-                importQuestions("src/Japan.txt");
+                importQuestions("src/questions/Japan.txt");
                 loadNextQuestions();
                 cardLayout.show(cardPanel, "G");
             }
             else if (event.getSource() == mexicoButton){
                 currentQuestionIdx = 0;
                 currentScore = 0;
-                importQuestions("src/Mexico.txt");
+                importQuestions("src/questions/Mexico.txt");
                 loadNextQuestions();
                 cardLayout.show(cardPanel, "G");
             }
             else if (event.getSource() == australiaButton){
                 currentQuestionIdx = 0;
                 currentScore = 0;
-                importQuestions("src/Australia.txt");
+                importQuestions("src/questions/Australia.txt");
                 loadNextQuestions();
                 cardLayout.show(cardPanel, "G");
             }
             else if (event.getSource() == taiwanButton){
                 currentQuestionIdx = 0;
                 currentScore = 0;
-                importQuestions("src/Taiwan.txt");
+                importQuestions("src/questions/Taiwan.txt");
                 loadNextQuestions();
                 cardLayout.show(cardPanel, "G");
             }
             else if (event.getSource() == greeceButton){
                 currentQuestionIdx = 0;
                 currentScore = 0;
-                importQuestions("src/Greece.txt");
+                importQuestions("src/questions/Greece.txt");
                 loadNextQuestions();
                 cardLayout.show(cardPanel, "G");
             }
             else if (event.getSource() == cambodiaButton){
                 currentQuestionIdx = 0;
                 currentScore = 0;
-                importQuestions("src/Cambodia.txt");
+                importQuestions("src/questions/Cambodia.txt");
                 loadNextQuestions();
                 cardLayout.show(cardPanel, "G");
             }
@@ -154,20 +147,26 @@ public class Trivia extends JFrame{
     private void createWelcomePanel(){
         welcomePanel = new JPanel(new BorderLayout());
         JLabel title = new JLabel("~Quizzie~", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 50));
-        welcomePanel.add(title, BorderLayout.CENTER);
+        title.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 100));
+        //welcomePanel.add(title, BorderLayout.CENTER);
         startButton = new JButton("Start game");
-        startButton.setFont(new Font("Arial", Font.BOLD, 35));
-        welcomePanel.add(startButton, BorderLayout.SOUTH);
+        startButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
+
+        ImageIcon bgIcon = new ImageIcon("src/pictures/Background.png");
+        JLabel background = new JLabel(bgIcon);
+        background.setLayout(new BorderLayout());
+        background.add(title, BorderLayout.CENTER);
+        background.add(startButton, BorderLayout.SOUTH);
+        welcomePanel.add(background, BorderLayout.CENTER);
         cardPanel.add(welcomePanel, "W");
     }
     private void createUsernamePanel(){
         usernamePanel = new JPanel(new BorderLayout());
         inputField = new JTextField("Enter a username: ");
-        inputField.setFont(new Font("Arial", Font.PLAIN, 40));
+        inputField.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 40));
 
         usernameButton = new JButton("Save the name");
-        usernameButton.setFont(new Font("Arial", Font.BOLD, 30));
+        usernameButton.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 30));
 
         JPanel usernameButtonPanel = new JPanel(new FlowLayout());
         usernameButtonPanel.add(inputField);
@@ -175,67 +174,77 @@ public class Trivia extends JFrame{
         usernamePanel.add(usernameButtonPanel, BorderLayout.NORTH);
 
         JPanel categoryPanel = new JPanel(new GridLayout(2,3,10, 10));
-        japanButton = new JButton("Japan");                 japanButton.setFont(new Font("Arial", Font.BOLD, 35));
-        mexicoButton = new JButton("Mexico");               mexicoButton.setFont(new Font("Arial", Font.BOLD, 35));
-        australiaButton = new JButton("Australia");         australiaButton.setFont(new Font("Arial", Font.BOLD, 35));
-        taiwanButton = new JButton("Taiwan");               taiwanButton.setFont(new Font("Arial", Font.BOLD, 35));
-        greeceButton = new JButton("Greece");               greeceButton.setFont(new Font("Arial", Font.BOLD, 35));
-        cambodiaButton = new JButton("Cambodia");           cambodiaButton.setFont(new Font("Arial", Font.BOLD, 35));
-        categoryPanel.add(japanButton);
-        categoryPanel.add(mexicoButton);
-        categoryPanel.add(australiaButton);
-        categoryPanel.add(taiwanButton);
-        categoryPanel.add(greeceButton);
-        categoryPanel.add(cambodiaButton);
-
+        createCategoryButtons();
+        categoryPanel.add(japanButton);         categoryPanel.add(mexicoButton);
+        categoryPanel.add(australiaButton);     categoryPanel.add(taiwanButton);
+        categoryPanel.add(greeceButton);        categoryPanel.add(cambodiaButton);
         usernamePanel.add(categoryPanel, BorderLayout.CENTER);
 
-        /*JPanel buttonPanel = new JPanel(new FlowLayout());
-        playButton = new JButton("Play");
-        playButton.setFont(new Font("Arial", Font.BOLD, 35));
-        buttonPanel.add(playButton);
-        usernamePanel.add(buttonPanel, BorderLayout.SOUTH);*/
+        JPanel instructPanel = new JPanel(new FlowLayout());
+        InstructionLabel = new JLabel("~Choose a category to start quizzing~");
+        InstructionLabel.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 35));
+        instructPanel.add(InstructionLabel);
+        usernamePanel.add(instructPanel, BorderLayout.SOUTH);
+
+        Color cream = new Color(255, 248, 204);
+        usernamePanel.setBackground(cream);
+        usernameButtonPanel.setBackground(cream);
+        categoryPanel.setBackground(cream);
+        instructPanel.setBackground(cream);
+
         cardPanel.add(usernamePanel, "U");
     }
+
+
     private void createGamePanel(){
+        Color cream = new Color(255, 248, 204);
+
         gamePanel = new JPanel(new BorderLayout());
-        //gamePanel.add(new JLabel("Quiz Screen"));
         questionLabel = new JLabel("Question #1", SwingConstants.CENTER);
-        questionLabel.setFont(new Font("Arial", Font.BOLD, 35));
+        questionLabel.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 35));
         gamePanel.add(questionLabel, BorderLayout.NORTH);
-        //JLabel gameLabel = new JLabel("Quiz Screen");
-        //gameLabel.setFont(new Font("Arial", Font.BOLD, 50));
-        //gamePanel.add(gameLabel);
         nextButton = new JButton("Go to results");
-        nextButton.setFont(new Font("Arial", Font.BOLD, 30));
-        gamePanel.add(nextButton, BorderLayout.SOUTH);
+        nextButton.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 30));
+        JPanel nextButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        nextButtonPanel.add(nextButton);
+        gamePanel.add(nextButtonPanel, BorderLayout.SOUTH);
+        //gamePanel.add(nextButton, BorderLayout.SOUTH);
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         for (int i = 0; i < 4; i++){
             optionButtons[i] = new JButton("Option " + (i+1));
-            optionButtons[i].setFont(new Font("Arial", Font.BOLD, 30));
+            optionButtons[i].setFont(new Font("Franklin Gothic Medium", Font.BOLD, 30));
             OptionButtonsHandler optionButtonsHandler = new OptionButtonsHandler(i);
             optionButtons[i].addActionListener(optionButtonsHandler);
             buttonPanel.add(optionButtons[i]);
-            //buttonPanel.add(optionButtons[i]);
         }
         gamePanel.add(buttonPanel, BorderLayout.CENTER);
+
+        gamePanel.setBackground(cream);
+        buttonPanel.setBackground(cream);
+        nextButtonPanel.setBackground(cream);
+
         cardPanel.add(gamePanel, "G");
     }
 
     private void createResultPanel(){
         resultPanel = new JPanel(new BorderLayout());
-        //resultPanel.add(new JLabel("Results Screen"));
         resultLabel = new JLabel();
-        resultLabel.setFont(new Font("Arial", Font.BOLD, 50));
-        //resultLabel.setText("Congrats " + username + " on earning " + currentScore + " pts!");
+
+        ImageIcon bgIcon = new ImageIcon("src/pictures/Congrats.png");
+        JLabel background = new JLabel(bgIcon);
+        background.setLayout(new BorderLayout());
+
+        resultLabel.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 75));
         resultLabel.setHorizontalAlignment(SwingConstants.CENTER);
         resultLabel.setVerticalAlignment(SwingConstants.CENTER);
-        resultPanel.add(resultLabel, BorderLayout.CENTER);
+        background.add(resultLabel, BorderLayout.CENTER);
 
         playAgainButton = new JButton("Play again?");
-        playAgainButton.setFont(new Font("Arial", Font.BOLD, 35));
-        resultPanel.add(playAgainButton, BorderLayout.SOUTH);
+        playAgainButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
+        background.add(playAgainButton, BorderLayout.SOUTH);
+
+        resultPanel.add(background, BorderLayout.CENTER);
         cardPanel.add(resultPanel, "R");
     }
 
@@ -266,7 +275,7 @@ public class Trivia extends JFrame{
     private void loadNextQuestions(){
         if (questionPair == null || currentQuestionIdx > questionPair.size() - 1){
             //createResultPanel();
-            resultLabel.setText("Congrats " + username + " on earning " + currentScore + " pts!");
+            resultLabel.setText("on earning " + currentScore + " pts, " + username + "!");
             cardLayout.show(cardPanel, "R");
             return;
         }
@@ -275,5 +284,22 @@ public class Trivia extends JFrame{
             optionButtons[i].setText(questionPair.get(currentQuestionIdx).get(i + 1));
         }
     }
-}
+    private void createCategoryButtons(){
+        ImageIcon JPbg = new ImageIcon("src/pictures/Japanbg.png");         ImageIcon MXbg = new ImageIcon("src/pictures/Mexicobg.png");
+        ImageIcon CMbg = new ImageIcon("src/pictures/Cambodiabg.png");      ImageIcon GCbg = new ImageIcon("src/pictures/Greecebg.png");
+        ImageIcon AUbg = new ImageIcon("src/pictures/Australiabg.png");     ImageIcon TWbg = new ImageIcon("src/pictures/Taiwanbg.png");
+        japanButton = new JButton("Japan", JPbg);                 japanButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
+        mexicoButton = new JButton("Mexico", MXbg);               mexicoButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
+        australiaButton = new JButton("Australia", AUbg);         australiaButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
+        taiwanButton = new JButton("Taiwan", TWbg);               taiwanButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
+        greeceButton = new JButton("Greece", GCbg);               greeceButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
+        cambodiaButton = new JButton("Cambodia", CMbg);           cambodiaButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
 
+        japanButton.setHorizontalTextPosition(SwingConstants.CENTER);       japanButton.setVerticalTextPosition(SwingConstants.CENTER);
+        mexicoButton.setHorizontalTextPosition(SwingConstants.CENTER);       mexicoButton.setVerticalTextPosition(SwingConstants.CENTER);
+        cambodiaButton.setHorizontalTextPosition(SwingConstants.CENTER);       cambodiaButton.setVerticalTextPosition(SwingConstants.CENTER);
+        taiwanButton.setHorizontalTextPosition(SwingConstants.CENTER);       taiwanButton.setVerticalTextPosition(SwingConstants.CENTER);
+        greeceButton.setHorizontalTextPosition(SwingConstants.CENTER);       greeceButton.setVerticalTextPosition(SwingConstants.CENTER);
+        australiaButton.setHorizontalTextPosition(SwingConstants.CENTER);       australiaButton.setVerticalTextPosition(SwingConstants.CENTER);
+    }
+}
