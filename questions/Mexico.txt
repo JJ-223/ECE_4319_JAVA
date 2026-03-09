@@ -1,0 +1,10 @@
+What is the capital of Mexico?|Guadalajara|Mexico City|Monterrey|Cancun|1
+Which Mexican holiday celebrates the dead?|Dia de los Muertos|Cinco de Mayo|Independence Day|Halloween|0
+Which is a traditional Mexican food?|Taco|Pizza|Burger|Sushi|0
+Which is Mexico’s largest state by area?|Chihuahua|Jalisco|Oaxaca|Yucatan|0
+Who painted the mural “Dream of a Sunday Afternoon in Alameda Park”?|Frida Kahlo|Diego Rivera|David Alfaro Siqueiros|Jose Clemente Orozco|1
+Which ocean borders Mexico to the west?|Pacific|Atlantic|Indian|Arctic|0
+Which pyramid is located in Teotihuacan?|Pyramid of the Moon|Chichen Itza|Pyramid of the Sun|El Tajin|2
+Which color is **not** in the Mexican flag?|Green|Red|White|Blue|3
+Which is a famous Mexican drink?|Vodka|Tequila|Rum|Whiskey|1
+What is the national sport of Mexico?|Basketball|Soccer|Charreria|Baseball|2

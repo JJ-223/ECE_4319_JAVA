@@ -1,0 +1,10 @@
+What is the capital of Taiwan?|Taipei|Kaohsiung|Taichung|Tainan|0
+Which island is Taiwan located near?|Hokkaido|Luzon|Hainan|Honshu|1
+Which Taiwanese food is famous worldwide?|Sushi|Pho|Bubble Tea|Kimchi|2
+What is Taiwan’s tallest building?|Kaohsiung Tower|Taipei 101|Sky Tower|Taipei Dome|1
+Which city is known as the cultural capital of Taiwan?|Taichung|Tainan|Taipei|Hsinchu|1
+Which body of water separates Taiwan from mainland China?|South China Sea|Taiwan Strait|Philippine Sea|East China Sea|1
+Which is a traditional Taiwanese festival?|Lunar New Year|Songkran|Dragon Boat Festival|Mid-Autumn Festival|2
+Which mountain range runs through Taiwan?|Central Mountain Range|Hengduan Mountains|Alps|Rockies|0
+Which Taiwanese invention became a global phenomenon?|Instant Noodles|Bubble Tea|Smartphone|K-Pop|1
+What is Taiwan’s most famous night market city?|Kaohsiung|Taichung|Taipei|Tainan|2

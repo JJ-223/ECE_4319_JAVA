@@ -1,0 +1,10 @@
+What is the capital of Greece?|Athens|Thessaloniki|Patras|Heraklion|0
+Which Greek island is famous for white buildings and blue domes?|Mykonos|Crete|Santorini|Rhodes|2
+Who taught Alexander the Great?|Plato|Aristotle|Socrates|Pythagoras|1
+Which Greek god rules the sea?|Poseidon|Zeus|Hades|Apollo|0
+Which is considered a traditional Greek sport?|Football|Olympic-style Wrestling|Basketball|Tennis|1
+Which ancient temple is on the Acropolis?|Parthenon|Temple of Zeus|Temple of Apollo|Temple of Athena|0
+Which sea is east of mainland Greece?|Ionian|Aegean|Mediterranean|Adriatic|1
+What currency did Greece use before the Euro?|Drachma|Lira|Peso|Franc|0
+Which Greek island has the Palace of Knossos?|Santorini|Crete|Rhodes|Corfu|1
+Which is the famous mountain home of the Greek gods?|Mount Athos|Mount Parnassus|Mount Olympus|Mount Ida|2

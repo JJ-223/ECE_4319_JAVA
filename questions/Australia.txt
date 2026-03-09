@@ -1,0 +1,10 @@
+What is the capital of Australia?|Sydney|Melbourne|Canberra|Brisbane|2
+Which animal is native to Australia?|Elephant|Kangaroo|Lion|Panda|1
+Which famous reef is located in Australia?|Belize Barrier Reef|Great Barrier Reef|Red Sea Reef|Florida Reef|1
+Which city hosted the 2000 Summer Olympics?|Melbourne|Sydney|Brisbane|Perth|1
+What is Australia’s largest state?|Queensland|Victoria|Western Australia|New South Wales|2
+Which iconic rock formation is in the Northern Territory?|Kata Tjuta|The Olgas|Mount Augustus|Uluru|3
+What is the national gemstone of Australia?|Emerald|Opal|Ruby|Sapphire|1
+Which Australian marsupial is known for sleeping upside down?|Koala|Kangaroo|Wombat|Tasmanian Devil|0
+Which animal appears on the Australian coat of arms alongside the kangaroo?|Platypus|Cockatoo|Emu|Echidna|2
+Which is Australia’s national floral emblem?|Golden Wattle|Waratah|Sturt’s Desert Pea|Bottlebrush|0

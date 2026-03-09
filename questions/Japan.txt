@@ -1,0 +1,10 @@
+What is the capital of Japan?|Kyoto|Tokyo|Osaka|Hiroshima|1
+What is the traditional Japanese garment called?|Hanbok|Poncho|Kimono|Sari|2
+Which Japanese island is the largest?|Kyushu|Shikoku|Hokkaido|Honshu|3
+What is the Japanese bullet train called?|Metro|Shinkansen|SkyRail|Maglev|1
+Which city hosted the 2020 Summer Olympics?|Osaka|Nagoya|Sapporo|Tokyo|3
+What is the highest mountain in Japan?|Mount Kita|Mount Fuji|Mount Haku|Mount Aso|1
+What is the Japanese currency?|Dollar|Won|Yen|Rupee|2
+Which Japanese food is made with vinegared rice?|Ramen|Tempura|Udon|Sushi|3
+What Japanese writing system uses Chinese characters?|Hiragana|Katakana|Romaji|Kanji|3
+Which natural disaster frequently occurs in Japan?|Tornadoes|Blizzards|Earthquakes|Hurricanes|2
