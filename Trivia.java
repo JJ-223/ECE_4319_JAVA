@@ -1,27 +1,31 @@
-
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.Socket;
 import java.util.List;
 import java.util.ArrayList;
 
 public class Trivia extends JFrame{
-    private String username;
-    private JPanel cardPanel, welcomePanel, usernamePanel, gamePanel, resultPanel;
-    private JButton startButton, nextButton, usernameButton, playAgainButton;
+    private String username, password;
+    private JPanel cardPanel, welcomePanel, usernamePanel, gamePanel, resultPanel, nextButtonPanel, leaderboardPanel;
+    private JButton startButton, resultsButton, registerButton, playAgainButton, loginButton, skipButton, scoreButton;
     private JButton japanButton, mexicoButton, australiaButton, taiwanButton, greeceButton, cambodiaButton;
     private JTextField inputField;
+    private JPasswordField passwordField;
     private CardLayout cardLayout;
-    private JLabel questionLabel, resultLabel, InstructionLabel;
+    private JLabel questionLabel, resultLabel, InstructionLabel, timerLabel;
     private JButton[] optionButtons = new JButton[4];
-    private int currentQuestionIdx, currentScore;
+    private int currentQuestionIdx, currentScore, timeLeft;
     private List<List<String>> questionPair;
     private List<Integer> correctAnswers;
+    private Timer questionTimer;
+    private ObjectOutputStream out; private ObjectInputStream in; private Socket socket;
+    private JTable leaderboardTable;
+    private DefaultTableModel tableModel;
     public Trivia(){
         currentQuestionIdx = 0;
         currentScore = 0;
@@ -39,13 +43,17 @@ public class Trivia extends JFrame{
         createGamePanel();
         // Results screen
         createResultPanel();
+        createLeaderboardPanel();
 
         ButtonHandler handler = new ButtonHandler();
         startButton.addActionListener(handler);
-        usernameButton.addActionListener(handler);
+        registerButton.addActionListener(handler);
+        loginButton.addActionListener(handler);
         //playButton.addActionListener(handler);
-        nextButton.addActionListener(handler);
+        resultsButton.addActionListener(handler);
+        skipButton.addActionListener(handler);
         playAgainButton.addActionListener(handler);
+        scoreButton.addActionListener(handler);
 
         japanButton.addActionListener(handler);
         mexicoButton.addActionListener(handler);
@@ -63,62 +71,93 @@ public class Trivia extends JFrame{
             if(event.getSource() == startButton){
                 cardLayout.show(cardPanel, "U");
             }
-            else if(event.getSource() == nextButton){
-                //createResultPanel();
+            else if(event.getSource() == resultsButton){
+                stopQuestionTimer();
                 resultLabel.setText("on earning " + currentScore + " pts, " + username + "!");
                 cardLayout.show(cardPanel, "R");
             }
-            else if (event.getSource() == usernameButton){
+            else if (event.getSource() == registerButton || event.getSource() == loginButton){
                 username = inputField.getText();
-                JOptionPane.showMessageDialog(null, "Welcome " + username + "!");
-            }// Why null? =
+                password = new String(passwordField.getPassword());
+                String action = (event.getSource() == registerButton) ? "REGISTER" : "LOGIN";
+                try {
+                    socket = new Socket("localhost", 8081);
+                    out = new ObjectOutputStream(socket.getOutputStream());
+                    in = new ObjectInputStream(socket.getInputStream());
+                    out.writeObject(action + ":" + username + ":" + password);
+                    String response = (String) in.readObject();
+                    System.out.println("Server says: " + response);
+                    if (response.contains("Welcome")) {
+                        JOptionPane.showMessageDialog(null, "Welcome back, " + username + "!", "Login Successful", JOptionPane.INFORMATION_MESSAGE);
+                    } else if(response.contains("registered")){
+                        JOptionPane.showMessageDialog(null, "Account created successfully for " + username + "!", "Registration Complete", JOptionPane.INFORMATION_MESSAGE);
+                    }else {
+                        JOptionPane.showMessageDialog(null, "Needs unique username OR wrong username/password. Please try again.");
+                    }
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null,"Connection error: Server is offline.");
+                }
+            }
+            else if(event.getSource() == skipButton) {
+                stopQuestionTimer();
+                try {
+                    Socket socket = new Socket("localhost", 8081);
+                    ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                    ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
+                    out.writeObject("CHECK:" + currentQuestionIdx + ":-1");
+                    in.readObject();
+                    int correctIndex = (int) in.readObject();
+
+                    for (int i = 0; i < optionButtons.length; i++) {
+                        optionButtons[i].setBackground(i == correctIndex ? Color.GREEN : Color.RED);
+                    }
+                    Timer pause = new Timer(1000, new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            currentQuestionIdx++;
+                            loadNextQuestions();
+                        }
+                    });
+                    pause.setRepeats(false);
+                    pause.start();
+                    socket.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             else if (event.getSource() == playAgainButton){
+                stopQuestionTimer();
                 currentQuestionIdx = 0;
                 currentScore = 0;
-                loadNextQuestions();
                 cardLayout.show(cardPanel, "W");
             }
-            else if (event.getSource() == japanButton){
+            else if (event.getSource() == japanButton || event.getSource() == mexicoButton ||
+                    event.getSource() == australiaButton || event.getSource() == taiwanButton ||
+                    event.getSource() == greeceButton || event.getSource() == cambodiaButton) {
+                String category = ((JButton)event.getSource()).getText();
                 currentQuestionIdx = 0;
                 currentScore = 0;
-                importQuestions("src/questions/Japan.txt");
-                loadNextQuestions();
-                cardLayout.show(cardPanel, "G");
+
+                try {
+                    Socket gameSocket = new Socket("localhost", 8081);
+                    ObjectOutputStream gameOut = new ObjectOutputStream(gameSocket.getOutputStream());
+                    ObjectInputStream gameIn = new ObjectInputStream(gameSocket.getInputStream());
+
+                    gameOut.writeObject("START_GAME:" + category);
+                    questionPair = (List<List<String>>) gameIn.readObject();
+                    correctAnswers = (List<Integer>) gameIn.readObject();
+                    gameSocket.close();
+                    loadNextQuestions();
+                    cardLayout.show(cardPanel, "G");
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Server Error: Could not fetch questions for " + category);
+                    e.printStackTrace();
+                }
             }
-            else if (event.getSource() == mexicoButton){
-                currentQuestionIdx = 0;
-                currentScore = 0;
-                importQuestions("src/questions/Mexico.txt");
-                loadNextQuestions();
-                cardLayout.show(cardPanel, "G");
-            }
-            else if (event.getSource() == australiaButton){
-                currentQuestionIdx = 0;
-                currentScore = 0;
-                importQuestions("src/questions/Australia.txt");
-                loadNextQuestions();
-                cardLayout.show(cardPanel, "G");
-            }
-            else if (event.getSource() == taiwanButton){
-                currentQuestionIdx = 0;
-                currentScore = 0;
-                importQuestions("src/questions/Taiwan.txt");
-                loadNextQuestions();
-                cardLayout.show(cardPanel, "G");
-            }
-            else if (event.getSource() == greeceButton){
-                currentQuestionIdx = 0;
-                currentScore = 0;
-                importQuestions("src/questions/Greece.txt");
-                loadNextQuestions();
-                cardLayout.show(cardPanel, "G");
-            }
-            else if (event.getSource() == cambodiaButton){
-                currentQuestionIdx = 0;
-                currentScore = 0;
-                importQuestions("src/questions/Cambodia.txt");
-                loadNextQuestions();
-                cardLayout.show(cardPanel, "G");
+            else if(event.getSource() == scoreButton){
+                showLeaderboard();
+                //cardLayout.show(cardPanel, "L");
             }
         }
     }
@@ -130,17 +169,46 @@ public class Trivia extends JFrame{
         }
         @Override
         public void actionPerformed(ActionEvent e) {
-            // validation
-            if (index == correctAnswers.get(currentQuestionIdx)){
-                // correct, give scores
-                JOptionPane.showMessageDialog(null, "Correct!");
-                currentScore++;
+            if(questionTimer != null && questionTimer.isRunning()){
+                questionTimer.stop();
             }
-            else{
-                JOptionPane.showMessageDialog(null, "Incorrect!");
+            try {
+                Socket socket = new Socket("localhost", 8081);
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
+                out.writeObject("CHECK:" + currentQuestionIdx + ":" + index);
+
+                boolean isCorrect = (boolean) in.readObject();
+                int correctIndex = (int) in.readObject();
+
+                if (isCorrect) {
+                    optionButtons[index].setBackground(Color.GREEN);
+                    currentScore++;
+                } else {
+                    optionButtons[index].setBackground(Color.RED);
+                    optionButtons[correctIndex].setBackground(Color.GREEN); // Show them the right one
+                }
+
+                Timer pause = new Timer(1000, new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        for(JButton btn : optionButtons){
+                            btn.setBackground(UIManager.getColor("Button.background"));
+                            btn.setContentAreaFilled(true);
+                            btn.setOpaque(true);
+                        }
+
+                        currentQuestionIdx++;
+                        loadNextQuestions();
+                    }
+                });
+                pause.setRepeats(false);
+                pause.start();
+                socket.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-            currentQuestionIdx++;
-            loadNextQuestions();
         }
     }
 
@@ -162,15 +230,23 @@ public class Trivia extends JFrame{
     }
     private void createUsernamePanel(){
         usernamePanel = new JPanel(new BorderLayout());
-        inputField = new JTextField("Enter a username: ");
+        inputField = new JTextField("Username: ");
         inputField.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 40));
 
-        usernameButton = new JButton("Save the name");
-        usernameButton.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 30));
+        passwordField = new JPasswordField("Password:");
+        passwordField.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 40));
+
+        registerButton = new JButton("Register");
+        registerButton.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 30));
+
+        loginButton = new JButton("Login");
+        loginButton.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 30));
 
         JPanel usernameButtonPanel = new JPanel(new FlowLayout());
         usernameButtonPanel.add(inputField);
-        usernameButtonPanel.add(usernameButton);
+        usernameButtonPanel.add(passwordField);
+        usernameButtonPanel.add(registerButton);
+        usernameButtonPanel.add(loginButton);
         usernamePanel.add(usernameButtonPanel, BorderLayout.NORTH);
 
         JPanel categoryPanel = new JPanel(new GridLayout(2,3,10, 10));
@@ -181,7 +257,7 @@ public class Trivia extends JFrame{
         usernamePanel.add(categoryPanel, BorderLayout.CENTER);
 
         JPanel instructPanel = new JPanel(new FlowLayout());
-        InstructionLabel = new JLabel("~Choose a category to start quizzing~");
+        InstructionLabel = new JLabel("~Choose a category to start quizzing~ (Register to save your score)");
         InstructionLabel.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 35));
         instructPanel.add(InstructionLabel);
         usernamePanel.add(instructPanel, BorderLayout.SOUTH);
@@ -195,7 +271,6 @@ public class Trivia extends JFrame{
         cardPanel.add(usernamePanel, "U");
     }
 
-
     private void createGamePanel(){
         Color cream = new Color(255, 248, 204);
 
@@ -203,10 +278,13 @@ public class Trivia extends JFrame{
         questionLabel = new JLabel("Question #1", SwingConstants.CENTER);
         questionLabel.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 35));
         gamePanel.add(questionLabel, BorderLayout.NORTH);
-        nextButton = new JButton("Go to results");
-        nextButton.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 30));
-        JPanel nextButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        nextButtonPanel.add(nextButton);
+        resultsButton = new JButton("Go to results");
+        resultsButton.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 30));
+        skipButton = new JButton("Skip");
+        skipButton.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 30));
+        nextButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        nextButtonPanel.add(resultsButton);
+        nextButtonPanel.add(skipButton);
         gamePanel.add(nextButtonPanel, BorderLayout.SOUTH);
         //gamePanel.add(nextButton, BorderLayout.SOUTH);
 
@@ -219,6 +297,10 @@ public class Trivia extends JFrame{
             buttonPanel.add(optionButtons[i]);
         }
         gamePanel.add(buttonPanel, BorderLayout.CENTER);
+
+        timerLabel = new JLabel("Question Time: 20s");
+        timerLabel.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 30));
+        nextButtonPanel.add(timerLabel);
 
         gamePanel.setBackground(cream);
         buttonPanel.setBackground(cream);
@@ -240,49 +322,67 @@ public class Trivia extends JFrame{
         resultLabel.setVerticalAlignment(SwingConstants.CENTER);
         background.add(resultLabel, BorderLayout.CENTER);
 
-        playAgainButton = new JButton("Play again?");
-        playAgainButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
-        background.add(playAgainButton, BorderLayout.SOUTH);
+        scoreButton = new JButton("View Scores");
+        scoreButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
+        background.add(scoreButton, BorderLayout.SOUTH);
 
         resultPanel.add(background, BorderLayout.CENTER);
         cardPanel.add(resultPanel, "R");
+
+        String[] columns = {"Rank", "Player", "Score"};
+        tableModel = new DefaultTableModel(columns, 0);
+        leaderboardTable = new JTable(tableModel);
+        leaderboardTable.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 20));
+        leaderboardTable.setRowHeight(30);
     }
-
-    private void importQuestions(String filename){
-        questionPair = new ArrayList<>();
-        correctAnswers = new ArrayList<>();
-
-        try{
-            BufferedReader reader = new BufferedReader(new FileReader(filename));
-            String line;
-
-            while((line = reader.readLine()) != null){
-                String[] parts = line.split("\\|");
-
-                List<String> question  = new ArrayList<>();
-                for(int i = 0; i < 5; i++){
-                    question.add(parts[i]);
-                }
-                questionPair.add(question);
-                correctAnswers.add(Integer.parseInt(parts[5]));
-            }
-            reader.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void loadNextQuestions(){
+        for (JButton btn : optionButtons){
+            btn.setBackground(UIManager.getColor("Button.background"));
+            btn.setOpaque(true);
+            btn.setContentAreaFilled(true);
+        }
         if (questionPair == null || currentQuestionIdx > questionPair.size() - 1){
-            //createResultPanel();
+            stopQuestionTimer();
             resultLabel.setText("on earning " + currentScore + " pts, " + username + "!");
             cardLayout.show(cardPanel, "R");
             return;
         }
+        if(questionTimer != null && questionTimer.isRunning()){
+            questionTimer.stop();
+        }
+        timeLeft = 20;
+        timerLabel.setText("Question Time: " + timeLeft + "s");
+
         questionLabel.setText((questionPair.get(currentQuestionIdx).get(0)));
         for (int i = 0; i < 4; i++){
             optionButtons[i].setText(questionPair.get(currentQuestionIdx).get(i + 1));
         }
+        questionTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                timeLeft--;
+                timerLabel.setText("Question Time: " + timeLeft + "s");
+                if(timeLeft <= 0){
+                    questionTimer.stop();
+                    try {
+                        Socket socket = new Socket("localhost", 8081);
+                        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                        ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                        out.writeObject("CHECK:" + currentQuestionIdx + ":-1"); // -1 because no button was pressed
+                        in.readObject();
+                        int correctIndex = (int) in.readObject();
+                        for (int i = 0; i < optionButtons.length; i++) {
+                            optionButtons[i].setBackground(i == correctIndex ? Color.GREEN : Color.RED);
+                        }
+                        socket.close();
+                    } catch (Exception ex) { ex.printStackTrace(); }
+                    JOptionPane.showMessageDialog(null, "Time's up! No points~");
+                    currentQuestionIdx++;
+                    loadNextQuestions();
+                }
+            }
+        });
+        questionTimer.start();
     }
     private void createCategoryButtons(){
         ImageIcon JPbg = new ImageIcon("src/pictures/Japanbg.png");         ImageIcon MXbg = new ImageIcon("src/pictures/Mexicobg.png");
@@ -301,5 +401,80 @@ public class Trivia extends JFrame{
         taiwanButton.setHorizontalTextPosition(SwingConstants.CENTER);       taiwanButton.setVerticalTextPosition(SwingConstants.CENTER);
         greeceButton.setHorizontalTextPosition(SwingConstants.CENTER);       greeceButton.setVerticalTextPosition(SwingConstants.CENTER);
         australiaButton.setHorizontalTextPosition(SwingConstants.CENTER);       australiaButton.setVerticalTextPosition(SwingConstants.CENTER);
+    }
+    private void stopQuestionTimer() {
+        if (questionTimer != null && questionTimer.isRunning()) {
+            questionTimer.stop();
+        }
+    }
+
+    private void createLeaderboardPanel() {
+        leaderboardPanel = new JPanel(new BorderLayout());
+        leaderboardPanel.setBackground(new Color(255, 248, 204));
+
+        JLabel header = new JLabel("TOP 10 LEADERBOARD", SwingConstants.CENTER);
+        header.setFont(new Font("Franklin Gothic Heavy", Font.BOLD, 40));
+
+        String[] columns = {"Rank", "Player", "Score"};
+        tableModel = new DefaultTableModel(columns, 0);
+        leaderboardTable = new JTable(tableModel);
+
+        leaderboardTable.setFont(new Font("Franklin Gothic Medium", Font.PLAIN, 20));
+        leaderboardTable.setRowHeight(30);
+
+        JScrollPane scrollPane = new JScrollPane(leaderboardTable);
+
+        playAgainButton = new JButton("Play again?");
+        playAgainButton.setFont(new Font("Franklin Gothic Medium", Font.BOLD, 35));
+
+        //JPanel bottomPanel = new JPanel();
+        //bottomPanel.setBackground(new Color(255, 248, 204));
+        //bottomPanel.add(playAgainButton, BorderLayout.SOUTH);
+
+        leaderboardPanel.add(header, BorderLayout.NORTH);
+        leaderboardPanel.add(scrollPane, BorderLayout.CENTER);
+        leaderboardPanel.add(playAgainButton, BorderLayout.SOUTH);
+
+        cardPanel.add(leaderboardPanel, "L");
+    }
+
+    private void showLeaderboard() {
+        new Thread(() -> {
+            try {
+                if (username != null && !username.trim().isEmpty() && !username.equals("Username:")) {
+                    Socket updateSocket = new Socket("localhost", 8081);
+                    ObjectOutputStream updateOut = new ObjectOutputStream(updateSocket.getOutputStream());
+                    updateOut.writeObject("UPDATE_SCORE:" + username + ":" + currentScore);
+                    updateOut.flush();
+                    updateSocket.close();
+                }
+
+                Socket lbSocket = new Socket("localhost", 8081);
+                ObjectOutputStream lbOut = new ObjectOutputStream(lbSocket.getOutputStream());
+                ObjectInputStream lbIn = new ObjectInputStream(lbSocket.getInputStream());
+
+                lbOut.writeObject("GET_LEADERBOARD");
+                lbOut.flush();
+
+                List<String> topTen = (List<String>) lbIn.readObject();
+                lbSocket.close();
+
+                SwingUtilities.invokeLater(() -> {
+                    tableModel.setRowCount(0);
+
+                    for (int i = 0; i < topTen.size(); i++) {
+                        String[] parts = topTen.get(i).split(": ");
+                        tableModel.addRow(new Object[]{i + 1, parts[0], parts[1]});
+                    }
+
+                    cardLayout.show(cardPanel, "L");
+                    cardPanel.revalidate();
+                    cardPanel.repaint();
+                });
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }).start();
     }
 }
